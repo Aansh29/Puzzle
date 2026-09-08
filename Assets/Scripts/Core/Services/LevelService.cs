@@ -15,15 +15,29 @@ namespace Puzzle.Services
 
         public LevelData GetLevel(int levelNumber)
         {
+            LevelData lastAvailableLevel = null;
+
             foreach (LevelData level in levels)
             {
-                if (level != null && level.LevelNumber == levelNumber)
+                if (level == null)
+                {
+                    continue;
+                }
+
+                lastAvailableLevel = level;
+
+                if (level.LevelNumber == levelNumber)
                 {
                     return level;
                 }
             }
 
-            throw new InvalidOperationException($"Level {levelNumber} could not be found.");
+            if (lastAvailableLevel != null)
+            {
+                return lastAvailableLevel;
+            }
+
+            throw new InvalidOperationException("No levels are available.");
         }
     }
 }

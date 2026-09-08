@@ -17,7 +17,7 @@ namespace Puzzle.Flow
 
         public LevelResult CurrentLevelResult { get; private set; }
 
-        public GameFlowController(IGameState mainMenuState, IGameState gameplayState, ResultsState resultsState)
+        public GameFlowController(IGameState mainMenuState, GameplayState gameplayState, ResultsState resultsState)
         {
             states = new Dictionary<GameStateId, IGameState>
             {
@@ -26,6 +26,7 @@ namespace Puzzle.Flow
                 { GameStateId.Results, resultsState }
             };
 
+            gameplayState.SetFlowController(this);
             resultsState.SetFlowController(this);
         }
 

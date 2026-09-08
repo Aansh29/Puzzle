@@ -1,7 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using Puzzle.Core;
 using Puzzle.Popups;
+using Puzzle.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace Puzzle.Flow
 {
@@ -22,6 +23,15 @@ namespace Puzzle.Flow
         public Task OnEnterAsync()
         {
             LevelResult levelResult = flowController.CurrentLevelResult;
+
+            if (flowController.CurrentLevelResult.Outcome == LevelOutcome.Win)
+            {
+                ISaveService saveService = ServiceRegistry.Get<ISaveService>();
+
+                int currentLevel = saveService.LoadInt("CurrentLevel");
+
+                saveService.SaveInt("CurrentLevel", currentLevel + 1);
+            }
 
             popupManager.ShowResultPopup(
                 levelResult,

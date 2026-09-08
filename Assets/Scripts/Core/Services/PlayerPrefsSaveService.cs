@@ -14,5 +14,10 @@ namespace Puzzle.Services
         {
             return PlayerPrefs.GetInt(key, defaultValue);
         }
+
+        public bool HasKey(string key)
+        {
+            return PlayerPrefs.HasKey(key);
+        }
     }
 }

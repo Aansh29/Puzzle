@@ -39,7 +39,13 @@ namespace Puzzle.Screens
 
         public void SetMoves(int remainingMoves, int totalMoves)
         {
-            movesText.text = $"{remainingMoves} / {totalMoves}";
+            float progress = 1f - (float)remainingMoves / totalMoves;
+
+            Color moveColor = Color.HSVToRGB(Mathf.Lerp(0.33f, 0f, progress), 1f, 1f);
+
+            string colorHex = ColorUtility.ToHtmlStringRGB(moveColor);
+
+            movesText.text = $"<color=#{colorHex}>{remainingMoves}</color> / {totalMoves}";
         }
     }
 }

@@ -12,22 +12,17 @@ namespace Puzzle.Bootstrap
     public sealed class AppBootstrap : MonoBehaviour
     {
         [Header("Registries")]
-        [SerializeField]
-        private ScreenRegistry screenRegistry;
+        [SerializeField] private ScreenRegistry screenRegistry;
 
-        [SerializeField]
-        private PopupRegistry popupRegistry;
+        [SerializeField] private PopupRegistry popupRegistry;
 
         [Header("Roots")]
-        [SerializeField]
-        private Transform screenRoot;
+        [SerializeField] private Transform screenRoot;
 
-        [SerializeField]
-        private Transform popupRoot;
+        [SerializeField] private Transform popupRoot;
 
         [Header("Levels")]
-        [SerializeField]
-        private LevelData[] levels;
+        [SerializeField] private LevelData[] levels;
 
         private GameFlowController flowController;
 
@@ -57,7 +52,12 @@ namespace Puzzle.Bootstrap
 
             ISaveService saveService = new PlayerPrefsSaveService();
 
-            ServiceRegistry.Register<ISaveService>(saveService);
+            if (!saveService.HasKey("CurrentLevel"))
+            {
+                saveService.SaveInt("CurrentLevel", 1);
+            }
+
+            ServiceRegistry.Register(saveService);
 
             ServiceRegistry.Register(levelService);
             ServiceRegistry.Register(screenManager);

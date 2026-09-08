@@ -1,3 +1,4 @@
+using Puzzle.Gameplay.History;
 using System;
 
 namespace Puzzle.Gameplay.Grid
@@ -45,10 +46,11 @@ namespace Puzzle.Gameplay.Grid
             return cells[position.Row, position.Column];
         }
 
-        public bool TryMove(GridDirection direction, out int movedValue, out GridPosition targetPosition)
+        public bool TryMove(GridDirection direction, out int movedValue, out GridPosition targetPosition, out GridPosition previousPosition)
         {
             movedValue = EmptyCell;
             targetPosition = emptyPosition;
+            previousPosition = emptyPosition;
 
             GridPosition sourcePosition = GetTargetPosition(direction);
 
@@ -64,6 +66,8 @@ namespace Puzzle.Gameplay.Grid
 
             movedValue = cells[sourcePosition.Row, sourcePosition.Column];
 
+            previousPosition = sourcePosition;
+
             targetPosition = emptyPosition;
 
             cells[emptyPosition.Row, emptyPosition.Column] = movedValue;
@@ -73,6 +77,14 @@ namespace Puzzle.Gameplay.Grid
             emptyPosition = sourcePosition;
 
             return true;
+        }
+        public void UndoMove(BoardMove move)
+        {
+            cells[move.TargetPosition.Row, move.TargetPosition.Column] = EmptyCell;
+
+            cells[move.PreviousPosition.Row, move.PreviousPosition.Column] = move.MovedValue;
+
+            emptyPosition = move.TargetPosition;
         }
 
         public bool IsSolved()
@@ -155,6 +167,13 @@ namespace Puzzle.Gameplay.Grid
                     value++;
                 }
             }
+        }
+
+        public bool CanMove(GridDirection direction)
+        {
+            GridPosition sourcePosition = GetTargetPosition(direction);
+
+            return IsValidPosition(sourcePosition) && cells[sourcePosition.Row, sourcePosition.Column] != EmptyCell;
         }
 
         private GridPosition GetTargetPosition(GridDirection direction)

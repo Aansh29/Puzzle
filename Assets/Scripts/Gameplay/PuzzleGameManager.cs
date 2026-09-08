@@ -1,6 +1,7 @@
 using NaughtyAttributes;
 using Puzzle.Core;
 using Puzzle.Gameplay.Grid;
+using Puzzle.Gameplay.History;
 using System;
 using UnityEngine;
 
@@ -18,6 +19,8 @@ namespace Puzzle.Gameplay
         [SerializeField]
         private Input.SwipeInputController swipeInputController;
 
+        private BoardHistory boardHistory;
+
         [Button]
         private void TestInitialize()
         {
@@ -25,12 +28,13 @@ namespace Puzzle.Gameplay
 
             gridModel = new GridModel(5, 7);
 
+            boardHistory = new BoardHistory();
+
             gridView.Build(gridModel);
         }
 
         private void OnEnable()
         {
-
             if (swipeInputController == null)
             {
                 Debug.LogError("SwipeInputController reference is NULL");
@@ -66,7 +70,29 @@ namespace Puzzle.Gameplay
                 levelData.Rows,
                 levelData.Columns);
 
+            boardHistory = new BoardHistory();
+
             gridView.Build(gridModel);
+        }
+
+        public void Undo()
+        {
+            if (gridModel == null ||
+                boardHistory == null ||
+                !boardHistory.CanUndo)
+            {
+                return;
+            }
+
+            BoardMove move = boardHistory.Undo();
+
+            gridModel.UndoMove(move);
+
+            gridView.MoveTile(
+                move.MovedValue,
+                move.PreviousPosition,
+                gridModel.Rows,
+                gridModel.Columns);
         }
 
         private void HandleDirectionDetected(GridDirection direction)
@@ -80,13 +106,17 @@ namespace Puzzle.Gameplay
                 gridModel.TryMove(
                     direction,
                     out int movedValue,
-                    out GridPosition targetPosition);
-
+                    out GridPosition targetPosition,
+                    out GridPosition previousPosition);
 
             if (!moved)
             {
                 return;
             }
+
+            BoardMove move = new BoardMove(movedValue, previousPosition, targetPosition);
+
+            boardHistory.Save(move);
 
             gridView.MoveTile(
                 movedValue,

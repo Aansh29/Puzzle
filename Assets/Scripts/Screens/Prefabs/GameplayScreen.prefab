@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4459513065772303148}
   - component: {fileID: 5332034863930397996}
+  - component: {fileID: 6237733357000300448}
   m_Layer: 5
   m_Name: GameplayScreen
   m_TagString: Untagged
@@ -28,7 +29,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 3156522628877435584}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -48,3 +50,68 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 282cd8a95e474444eafaa40c67d54de1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Puzzle.Screens.GameplayScreen
+  puzzleGameManager: {fileID: 6237733357000300448}
+--- !u!114 &6237733357000300448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1150482713769812214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9345e1efca0be3047a99309fe2352f05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Puzzle.Gameplay.PuzzleGameManager
+  gridView: {fileID: 2768908636469070467}
+--- !u!1 &4575461465478527560
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3156522628877435584}
+  - component: {fileID: 2768908636469070467}
+  m_Layer: 5
+  m_Name: GridRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3156522628877435584
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4575461465478527560}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4459513065772303148}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 850}
+  m_SizeDelta: {x: -120, y: 1270}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2768908636469070467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4575461465478527560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 484fbb9eb08282a47b62b93b0233c7b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Puzzle.Gameplay.Grid.GridView
+  cellPrefab: {fileID: 5852540418534545958, guid: b174fd49cc0e9de459a7e4fe47897cf9, type: 3}
+  cellSize: 100
+  spacing: 25

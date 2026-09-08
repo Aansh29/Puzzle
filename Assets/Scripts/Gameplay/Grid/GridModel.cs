@@ -45,25 +45,32 @@ namespace Puzzle.Gameplay.Grid
             return cells[position.Row, position.Column];
         }
 
-        public bool TryMove(GridDirection direction)
+        public bool TryMove(GridDirection direction, out int movedValue, out GridPosition targetPosition)
         {
-            GridPosition targetPosition = GetTargetPosition(direction);
+            movedValue = EmptyCell;
+            targetPosition = emptyPosition;
 
-            if (!IsValidPosition(targetPosition))
+            GridPosition sourcePosition = GetTargetPosition(direction);
+
+            if (!IsValidPosition(sourcePosition))
             {
                 return false;
             }
 
-            if (cells[targetPosition.Row, targetPosition.Column] == EmptyCell)
+            if (cells[sourcePosition.Row, sourcePosition.Column] == EmptyCell)
             {
                 return false;
             }
 
-            cells[emptyPosition.Row, emptyPosition.Column] = cells[targetPosition.Row, targetPosition.Column];
+            movedValue = cells[sourcePosition.Row, sourcePosition.Column];
 
-            cells[targetPosition.Row, targetPosition.Column] = EmptyCell;
+            targetPosition = emptyPosition;
 
-            emptyPosition = targetPosition;
+            cells[emptyPosition.Row, emptyPosition.Column] = movedValue;
+
+            cells[sourcePosition.Row, sourcePosition.Column] = EmptyCell;
+
+            emptyPosition = sourcePosition;
 
             return true;
         }
@@ -156,23 +163,23 @@ namespace Puzzle.Gameplay.Grid
             {
                 case GridDirection.Up:
                     return new GridPosition(
-                        emptyPosition.Row - 1,
+                        emptyPosition.Row + 1,
                         emptyPosition.Column);
 
                 case GridDirection.Down:
                     return new GridPosition(
-                        emptyPosition.Row + 1,
+                        emptyPosition.Row - 1,
                         emptyPosition.Column);
 
                 case GridDirection.Left:
                     return new GridPosition(
                         emptyPosition.Row,
-                        emptyPosition.Column - 1);
+                        emptyPosition.Column + 1);
 
                 case GridDirection.Right:
                     return new GridPosition(
                         emptyPosition.Row,
-                        emptyPosition.Column + 1);
+                        emptyPosition.Column - 1);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction));

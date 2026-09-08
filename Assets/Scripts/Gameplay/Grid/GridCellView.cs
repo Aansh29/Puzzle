@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Puzzle.Gameplay.Grid
 {
@@ -9,15 +8,19 @@ namespace Puzzle.Gameplay.Grid
         [SerializeField]
         private TMP_Text valueText;
 
-        public GridPosition Position { get; private set; }
+        public int Value { get; private set; }
 
-        public void Initialize(GridPosition position)
+        public void Initialize(int value)
         {
-            Position = position;
+            Value = value;
+
+            SetValue(value);
         }
 
         public void SetValue(int value)
         {
+            Value = value;
+
             if (value == GridModel.EmptyCell)
             {
                 valueText.text = string.Empty;

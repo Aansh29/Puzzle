@@ -1,6 +1,7 @@
 using System;
-using UnityEngine;
+using System.Collections.Generic;
 using NaughtyAttributes;
+using UnityEngine;
 
 namespace Puzzle.Gameplay.Grid
 {
@@ -15,13 +16,15 @@ namespace Puzzle.Gameplay.Grid
         [SerializeField]
         private float spacing = 10f;
 
-        private GridCellView[,] cells;
+        [SerializeField]
+        private float moveDuration = 0.15f;
+
+        private readonly Dictionary<int, GridCellView> cells = new();
 
         [Button]
         private void DrawBoxes()
         {
-            GridModel gridModel =
-                new GridModel(5, 7);
+            GridModel gridModel = new GridModel(5, 7);
 
             Build(gridModel);
         }
@@ -35,64 +38,59 @@ namespace Puzzle.Gameplay.Grid
 
             Clear();
 
-            cells = new GridCellView[gridModel.Rows, gridModel.Columns];
-
             for (int row = 0; row < gridModel.Rows; row++)
             {
                 for (int column = 0; column < gridModel.Columns; column++)
                 {
                     GridPosition position = new GridPosition(row, column);
+
+                    int value = gridModel.GetCell(position);
+
+                    if (value == GridModel.EmptyCell)
+                    {
+                        continue;
+                    }
 
                     GridCellView cell = Instantiate(cellPrefab, transform);
 
+                    cell.Initialize(value);
+
                     cell.transform.localPosition = CalculatePosition(position, gridModel.Rows, gridModel.Columns);
 
-                    cell.Initialize(position);
-
-                    cells[row, column] = cell;
-                }
-            }
-
-            Render(gridModel);
-        }
-
-        public void Render(GridModel gridModel)
-        {
-            if (gridModel == null)
-            {
-                throw new ArgumentNullException(nameof(gridModel));
-            }
-
-            for (int row = 0; row < gridModel.Rows; row++)
-            {
-                for (int column = 0; column < gridModel.Columns; column++)
-                {
-                    GridPosition position = new GridPosition(row, column);
-
-                    cells[row, column].SetValue(gridModel.GetCell(position));
+                    cells.Add(value, cell);
                 }
             }
         }
 
-        public void Clear()
+        public void MoveTile(int value, GridPosition targetPosition, int rows, int columns)
         {
-            if (cells == null)
+            if (!cells.TryGetValue(value, out GridCellView cell))
             {
                 return;
             }
 
-            for (int row = 0; row < cells.GetLength(0); row++)
+            Vector2 target = CalculatePosition(targetPosition, rows, columns);
+
+            LeanTween.cancel(cell.gameObject);
+
+            LeanTween.moveLocal(
+                    cell.gameObject,
+                    target,
+                    moveDuration)
+                .setEaseOutQuad();
+        }
+
+        public void Clear()
+        {
+            foreach (GridCellView cell in cells.Values)
             {
-                for (int column = 0; column < cells.GetLength(1); column++)
+                if (cell != null)
                 {
-                    if (cells[row, column] != null)
-                    {
-                        Destroy(cells[row, column].gameObject);
-                    }
+                    Destroy(cell.gameObject);
                 }
             }
 
-            cells = null;
+            cells.Clear();
         }
 
         private Vector2 CalculatePosition(GridPosition position, int rows, int columns)

@@ -18,9 +18,6 @@ namespace Puzzle.Gameplay
         [SerializeField]
         private Screens.GameplayScreen gameplayScreen;
 
-        [SerializeField]
-        private Input.SwipeInputController swipeInputController;
-
         private GridModel gridModel;
 
         private LevelContext levelContext;
@@ -45,30 +42,36 @@ namespace Puzzle.Gameplay
             levelGenerator.Generate(
                 gridModel,
                 5);
+
             remainingMoves = 5;
-            gameplayScreen.SetMoves(remainingMoves, 5);
+            moveLimit = 5;
+            levelCompleted = false;
+
+            gameplayScreen.SetMoves(
+                remainingMoves,
+                moveLimit);
 
             gridView.Build(gridModel);
         }
 
         private void OnEnable()
         {
-            if (swipeInputController == null)
+            if (gridView == null)
             {
                 return;
             }
 
-            swipeInputController.DirectionDetected += HandleDirectionDetected;
+            gridView.DirectionDetected += HandleDirectionDetected;
         }
 
         private void OnDisable()
         {
-            if (swipeInputController == null)
+            if (gridView == null)
             {
                 return;
             }
 
-            swipeInputController.DirectionDetected -= HandleDirectionDetected;
+            gridView.DirectionDetected -= HandleDirectionDetected;
         }
 
         public void Initialize(LevelContext context)
@@ -88,7 +91,7 @@ namespace Puzzle.Gameplay
 
             levelCompleted = false;
 
-            gridModel = new GridModel(levelData.Rows, levelData.Columns);
+            gridModel = new GridModel(levelData.Rows, levelData.Columns, levelData.EmptySpaces);
 
             boardHistory = new BoardHistory();
 
@@ -125,22 +128,27 @@ namespace Puzzle.Gameplay
                 move.MovedValue,
                 move.PreviousPosition,
                 gridModel.Rows,
-                gridModel.Columns);
-
-            gameplayScreen.SetMoves(
-                remainingMoves,
-                moveLimit);
+                gridModel.Columns,
+                () =>
+                {
+                    gameplayScreen.SetMoves(
+                        remainingMoves,
+                        moveLimit);
+                });
         }
 
-        private void HandleDirectionDetected(GridDirection direction)
+        private void HandleDirectionDetected(GridPosition sourcePosition, GridDirection direction)
         {
-            if (levelCompleted || gridModel == null || remainingMoves <= 0)
+            if (levelCompleted ||
+                gridModel == null ||
+                remainingMoves <= 0)
             {
                 return;
             }
 
             bool moved =
                 gridModel.TryMove(
+                    sourcePosition,
                     direction,
                     out int movedValue,
                     out GridPosition targetPosition,
@@ -161,13 +169,15 @@ namespace Puzzle.Gameplay
                 movedValue,
                 targetPosition,
                 gridModel.Rows,
-                gridModel.Columns);
+                gridModel.Columns,
+                () =>
+                {
+                    gameplayScreen.SetMoves(
+                        remainingMoves,
+                        moveLimit);
 
-            gameplayScreen.SetMoves(
-                remainingMoves,
-                moveLimit);
-
-            CheckLevelState();
+                    CheckLevelState();
+                });
         }
 
         private void CheckLevelState()
@@ -193,9 +203,13 @@ namespace Puzzle.Gameplay
 
             levelCompleted = true;
 
-            IGameFlowController flowController = ServiceRegistry.Get<IGameFlowController>();
+            IGameFlowController flowController =
+                ServiceRegistry.Get<IGameFlowController>();
 
-            LevelResult result = new LevelResult(outcome, moveLimit - remainingMoves);
+            LevelResult result =
+                new LevelResult(
+                    outcome,
+                    moveLimit - remainingMoves);
 
             _ = flowController.CompleteLevelAsync(result);
         }

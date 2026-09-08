@@ -21,6 +21,8 @@ namespace Puzzle.Gameplay.Grid
 
         private readonly Dictionary<int, GridCellView> cells = new();
 
+        public event Action<GridPosition, GridDirection> DirectionDetected;
+
         [Button]
         private void DrawBoxes()
         {
@@ -53,7 +55,10 @@ namespace Puzzle.Gameplay.Grid
 
                     GridCellView cell = Instantiate(cellPrefab, transform);
 
-                    cell.Initialize(value);
+                    cell.Initialize(value, position);
+
+                    cell.SwipeDetected += HandleSwipeDetected;
+
 
                     cell.transform.localPosition = CalculatePosition(position, gridModel.Rows, gridModel.Columns);
 
@@ -62,7 +67,27 @@ namespace Puzzle.Gameplay.Grid
             }
         }
 
-        public void MoveTile(int value, GridPosition targetPosition, int rows, int columns)
+        private void HandleSwipeDetected(GridPosition sourcePosition, Vector2 swipeDelta)
+        {
+            GridDirection direction;
+
+            if (Mathf.Abs(swipeDelta.x) > Mathf.Abs(swipeDelta.y))
+            {
+                direction = swipeDelta.x > 0
+                    ? GridDirection.Right
+                    : GridDirection.Left;
+            }
+            else
+            {
+                direction = swipeDelta.y > 0
+                    ? GridDirection.Up
+                    : GridDirection.Down;
+            }
+
+            DirectionDetected?.Invoke(sourcePosition, direction);
+        }
+
+        public void MoveTile(int value, GridPosition targetPosition, int rows, int columns, Action onComplete = null)
         {
             if (!cells.TryGetValue(value, out GridCellView cell))
             {
@@ -71,13 +96,19 @@ namespace Puzzle.Gameplay.Grid
 
             Vector2 target = CalculatePosition(targetPosition, rows, columns);
 
+            cell.SetPosition(targetPosition);
+
             LeanTween.cancel(cell.gameObject);
 
             LeanTween.moveLocal(
                     cell.gameObject,
                     target,
                     moveDuration)
-                .setEaseOutQuad();
+               .setEaseOutQuad()
+               .setOnComplete(() =>
+               {
+                   onComplete?.Invoke();
+               });
         }
 
         public void Clear()

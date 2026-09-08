@@ -1,5 +1,6 @@
 using Puzzle.Gameplay.History;
 using System;
+using System.Collections.Generic;
 
 namespace Puzzle.Gameplay.Grid
 {
@@ -9,17 +10,18 @@ namespace Puzzle.Gameplay.Grid
 
         private readonly int rows;
         private readonly int columns;
+        private readonly int emptySpaces;
         private readonly int[,] cells;
 
-        private GridPosition emptyPosition;
+        private readonly List<GridPosition> emptyPositions = new();
 
         public int Rows => rows;
 
         public int Columns => columns;
 
-        public GridPosition EmptyPosition => emptyPosition;
+        public IReadOnlyList<GridPosition> EmptyPositions => emptyPositions;
 
-        public GridModel(int rows, int columns)
+        public GridModel(int rows, int columns, int emptySpaces = 1)
         {
             if (rows <= 0)
             {
@@ -31,8 +33,14 @@ namespace Puzzle.Gameplay.Grid
                 throw new ArgumentOutOfRangeException(nameof(columns));
             }
 
+            if (emptySpaces <= 0 || emptySpaces >= rows * columns)
+            {
+                throw new ArgumentOutOfRangeException(nameof(emptySpaces));
+            }
+
             this.rows = rows;
             this.columns = columns;
+            this.emptySpaces = emptySpaces;
 
             cells = new int[rows, columns];
 
@@ -49,17 +57,16 @@ namespace Puzzle.Gameplay.Grid
         public bool TryMove(GridDirection direction, out int movedValue, out GridPosition targetPosition, out GridPosition previousPosition)
         {
             movedValue = EmptyCell;
-            targetPosition = emptyPosition;
-            previousPosition = emptyPosition;
+            targetPosition = default;
+            previousPosition = default;
 
-            GridPosition sourcePosition = GetTargetPosition(direction);
+            GridPosition sourcePosition;
+            GridPosition emptyPosition;
 
-            if (!IsValidPosition(sourcePosition))
-            {
-                return false;
-            }
-
-            if (cells[sourcePosition.Row, sourcePosition.Column] == EmptyCell)
+            if (!TryGetMovePositions(
+                    direction,
+                    out sourcePosition,
+                    out emptyPosition))
             {
                 return false;
             }
@@ -67,24 +74,24 @@ namespace Puzzle.Gameplay.Grid
             movedValue = cells[sourcePosition.Row, sourcePosition.Column];
 
             previousPosition = sourcePosition;
-
             targetPosition = emptyPosition;
 
             cells[emptyPosition.Row, emptyPosition.Column] = movedValue;
 
             cells[sourcePosition.Row, sourcePosition.Column] = EmptyCell;
 
-            emptyPosition = sourcePosition;
+            ReplaceEmptyPosition(emptyPosition, sourcePosition);
 
             return true;
         }
+
         public void UndoMove(BoardMove move)
         {
             cells[move.TargetPosition.Row, move.TargetPosition.Column] = EmptyCell;
 
             cells[move.PreviousPosition.Row, move.PreviousPosition.Column] = move.MovedValue;
 
-            emptyPosition = move.TargetPosition;
+            ReplaceEmptyPosition(move.PreviousPosition, move.TargetPosition);
         }
 
         public bool IsSolved()
@@ -95,10 +102,9 @@ namespace Puzzle.Gameplay.Grid
             {
                 for (int column = 0; column < columns; column++)
                 {
-                    if (row == rows - 1 &&
-                        column == columns - 1)
+                    if (cells[row, column] == EmptyCell)
                     {
-                        return cells[row, column] == EmptyCell;
+                        continue;
                     }
 
                     if (cells[row, column] != expectedValue)
@@ -110,99 +116,172 @@ namespace Puzzle.Gameplay.Grid
                 }
             }
 
+            return expectedValue == rows * columns - emptySpaces + 1;
+        }
+
+        public bool TryMove(GridPosition sourcePosition, GridDirection direction, out int movedValue, out GridPosition targetPosition, out GridPosition previousPosition)
+        {
+            movedValue = EmptyCell;
+            targetPosition = default;
+            previousPosition = default;
+
+            ValidatePosition(sourcePosition);
+
+            targetPosition = GetTargetPositionFromSource(
+                sourcePosition,
+                direction);
+
+            if (!IsValidPosition(targetPosition))
+            {
+                return false;
+            }
+
+            if (cells[sourcePosition.Row, sourcePosition.Column] == EmptyCell)
+            {
+                return false;
+            }
+
+            if (cells[targetPosition.Row, targetPosition.Column] != EmptyCell)
+            {
+                return false;
+            }
+
+            movedValue = cells[sourcePosition.Row, sourcePosition.Column];
+
+            previousPosition = sourcePosition;
+
+            cells[targetPosition.Row, targetPosition.Column] = movedValue;
+            cells[sourcePosition.Row, sourcePosition.Column] = EmptyCell;
+
+            ReplaceEmptyPosition(targetPosition, sourcePosition);
+
             return true;
         }
-
-        public int[,] CreateSnapshot()
+        private GridPosition GetTargetPositionFromSource(GridPosition sourcePosition, GridDirection direction)
         {
-            int[,] snapshot = new int[rows, columns];
-
-            Array.Copy(
-                cells,
-                snapshot,
-                cells.Length);
-
-            return snapshot;
-        }
-
-        public void RestoreSnapshot(int[,] snapshot)
-        {
-            if (snapshot == null)
+            switch (direction)
             {
-                throw new ArgumentNullException(nameof(snapshot));
+                case GridDirection.Up:
+                    return new GridPosition(
+                        sourcePosition.Row - 1,
+                        sourcePosition.Column);
+
+                case GridDirection.Down:
+                    return new GridPosition(
+                        sourcePosition.Row + 1,
+                        sourcePosition.Column);
+
+                case GridDirection.Left:
+                    return new GridPosition(
+                        sourcePosition.Row,
+                        sourcePosition.Column - 1);
+
+                case GridDirection.Right:
+                    return new GridPosition(
+                        sourcePosition.Row,
+                        sourcePosition.Column + 1);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction));
             }
-
-            if (snapshot.GetLength(0) != rows ||
-                snapshot.GetLength(1) != columns)
-            {
-                throw new ArgumentException("Snapshot dimensions do not match the grid.");
-            }
-
-            Array.Copy(
-                snapshot,
-                cells,
-                cells.Length);
-
-            FindEmptyPosition();
         }
 
         private void InitializeSolved()
         {
             int value = 1;
 
+            emptyPositions.Clear();
+
             for (int row = 0; row < rows; row++)
             {
                 for (int column = 0; column < columns; column++)
                 {
-                    if (row == rows - 1 && column == columns - 1)
+                    if (value > rows * columns - emptySpaces)
                     {
                         cells[row, column] = EmptyCell;
 
-                        emptyPosition = new GridPosition(row, column);
+                        emptyPositions.Add(new GridPosition(row, column));
 
                         continue;
                     }
 
                     cells[row, column] = value;
+
                     value++;
                 }
             }
         }
 
-        public bool CanMove(GridDirection direction)
+        private bool TryGetMovePositions(GridDirection direction, out GridPosition sourcePosition, out GridPosition emptyPosition)
         {
-            GridPosition sourcePosition = GetTargetPosition(direction);
+            sourcePosition = default;
+            emptyPosition = default;
 
-            return IsValidPosition(sourcePosition) && cells[sourcePosition.Row, sourcePosition.Column] != EmptyCell;
+            for (int i = 0; i < emptyPositions.Count; i++)
+            {
+                GridPosition currentEmpty = emptyPositions[i];
+
+                GridPosition candidatePosition = GetTargetPosition(currentEmpty, direction);
+
+                if (!IsValidPosition(candidatePosition))
+                {
+                    continue;
+                }
+
+                if (cells[candidatePosition.Row, candidatePosition.Column] == EmptyCell)
+                {
+                    continue;
+                }
+
+                sourcePosition = candidatePosition;
+                emptyPosition = currentEmpty;
+
+                return true;
+            }
+
+            return false;
         }
 
-        private GridPosition GetTargetPosition(GridDirection direction)
+        private GridPosition GetTargetPosition(GridPosition emptyPosition, GridDirection direction)
         {
             switch (direction)
             {
                 case GridDirection.Up:
                     return new GridPosition(
-                        emptyPosition.Row + 1,
+                        emptyPosition.Row - 1,
                         emptyPosition.Column);
 
                 case GridDirection.Down:
                     return new GridPosition(
-                        emptyPosition.Row - 1,
+                        emptyPosition.Row + 1,
                         emptyPosition.Column);
 
                 case GridDirection.Left:
                     return new GridPosition(
                         emptyPosition.Row,
-                        emptyPosition.Column + 1);
+                        emptyPosition.Column - 1);
 
                 case GridDirection.Right:
                     return new GridPosition(
                         emptyPosition.Row,
-                        emptyPosition.Column - 1);
+                        emptyPosition.Column + 1);
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(direction));
+                    throw new ArgumentOutOfRangeException(
+                        nameof(direction));
             }
+        }
+
+        private void ReplaceEmptyPosition(GridPosition oldPosition, GridPosition newPosition)
+        {
+            int index = emptyPositions.IndexOf(oldPosition);
+
+            if (index < 0)
+            {
+                throw new InvalidOperationException("Empty position could not be found.");
+            }
+
+            emptyPositions[index] = newPosition;
         }
 
         private bool IsValidPosition(GridPosition position)
@@ -219,24 +298,6 @@ namespace Puzzle.Gameplay.Grid
             {
                 throw new ArgumentOutOfRangeException(nameof(position));
             }
-        }
-
-        private void FindEmptyPosition()
-        {
-            for (int row = 0; row < rows; row++)
-            {
-                for (int column = 0; column < columns; column++)
-                {
-                    if (cells[row, column] == EmptyCell)
-                    {
-                        emptyPosition = new GridPosition(row, column);
-
-                        return;
-                    }
-                }
-            }
-
-            throw new InvalidOperationException("Grid does not contain an empty cell.");
         }
     }
 }

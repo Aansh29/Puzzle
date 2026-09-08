@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae6c4b10695f33f47acb4ebbf0cb8097, type: 3}
   m_Name: Level
   m_EditorClassIdentifier: Assembly-CSharp::Puzzle.Core.LevelData
-  <LevelName>k__BackingField: Hello
   <LevelNumber>k__BackingField: 1
   <Rows>k__BackingField: 3
   <Columns>k__BackingField: 5
+  <EmptySpaces>k__BackingField: 5
   <MoveLimit>k__BackingField: 10

@@ -1,17 +1,26 @@
+using System;
 using System.Threading.Tasks;
+using Puzzle.Screens;
 
 namespace Puzzle.Flow
 {
     public sealed class GameplayState : IGameState
     {
-        public Task OnEnterAsync()
+        private readonly IScreenManager screenManager;
+
+        public GameplayState(IScreenManager screenManager)
         {
-            return Task.CompletedTask;
+            this.screenManager = screenManager ?? throw new ArgumentNullException(nameof(screenManager));
         }
 
-        public Task OnExitAsync()
+        public async Task OnEnterAsync()
         {
-            return Task.CompletedTask;
+            await screenManager.ShowAsync(ScreenId.Gameplay);
+        }
+
+        public async Task OnExitAsync()
+        {
+            await screenManager.HideAsync(ScreenId.Gameplay);
         }
     }
 }

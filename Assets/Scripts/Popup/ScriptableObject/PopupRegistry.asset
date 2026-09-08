@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0dbe4b1b3c24864fa04a4494ec68403, type: 3}
+  m_Name: PopupRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::Puzzle.Popups.PopupRegistry
+  popups:
+  - Id: 0
+    Prefab: {fileID: 3002009643752849514, guid: fe72daf1e124879498762c352ee0a698, type: 3}

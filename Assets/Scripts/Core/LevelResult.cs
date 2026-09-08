@@ -11,13 +11,11 @@ namespace Puzzle.Core
     {
         public LevelOutcome Outcome { get; }
         public int Moves { get; }
-        public int Score { get; }
 
-        public LevelResult(LevelOutcome outcome, int moves, int score)
+        public LevelResult(LevelOutcome outcome, int moves)
         {
             Outcome = outcome;
             Moves = moves;
-            Score = score;
         }
     }
 }

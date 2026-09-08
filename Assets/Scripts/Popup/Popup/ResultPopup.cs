@@ -1,22 +1,28 @@
 using Puzzle.Core;
+using Puzzle.Flow;
+using Puzzle.Services;
 using System;
+using TMPro;
 using UnityEngine;
 
 namespace Puzzle.Popups
 {
     public sealed class ResultPopup : PopupBase
     {
-        private Action<PopupResult> onClosed;
+        [SerializeField]
+        private TMP_Text resultText;
+
+        [SerializeField]
+        private GameObject continueButton;
+
+        [SerializeField]
+        private GameObject restartButton;
 
         public override PopupId PopupId => PopupId.Result;
 
-        public override void Initialize(
-            object payload,
-            Action<PopupResult> onClosed)
+        public override void Initialize(object payload, Action<PopupResult> onClosed)
         {
             base.Initialize(payload, onClosed);
-
-            this.onClosed = onClosed;
 
             if (payload is not ResultPopupPayload data)
             {
@@ -25,15 +31,35 @@ namespace Puzzle.Popups
 
             LevelResult result = data.Result;
 
-            // TODO:
-            // resultTitle.text = result.Outcome.ToString();
-            // movesText.text = result.Moves.ToString();
-            // scoreText.text = result.Score.ToString();
+            resultText.text = result.Outcome == LevelOutcome.Win ? "YOU WIN" : "GAME OVER";
+
+            SetupButtons(result.Outcome);
         }
 
-        public void Close()
+        public void OnContinueClicked()
         {
-            onClosed?.Invoke(PopupResult.Accepted);
+            IGameFlowController flowController = ServiceRegistry.Get<IGameFlowController>();
+
+            Hide();
+
+            _ = flowController.QuitToMainMenuAsync();
+        }
+
+        public void OnRestartClicked()
+        {
+            IGameFlowController flowController = ServiceRegistry.Get<IGameFlowController>();
+
+            LevelData levelData = flowController.CurrentLevelContext.LevelData;
+
+            Hide();
+
+            _ = flowController.StartLevelAsync(levelData);
+        }
+
+        private void SetupButtons(LevelOutcome outcome)
+        {
+            continueButton.SetActive(true);
+            restartButton.SetActive(outcome == LevelOutcome.Lose);
         }
     }
 }

@@ -22,22 +22,22 @@ namespace Puzzle.Screens
             this.screenRoot = screenRoot ?? throw new ArgumentNullException(nameof(screenRoot));
         }
 
-        public Task ShowAsync(ScreenId screenId)
+        public Task ShowAsync(ScreenId screenId, object payload = null)
         {
             ScreenBase prefab = screenRegistry.GetPrefab(screenId);
 
             switch (prefab.ScreenType)
             {
                 case ScreenType.Exclusive:
-                    ShowExclusive(screenId);
+                    ShowExclusive(screenId, payload);
                     break;
 
                 case ScreenType.Modal:
-                    ShowModal(screenId);
+                    ShowModal(screenId, payload);
                     break;
 
                 case ScreenType.Additive:
-                    ShowAdditive(screenId);
+                    ShowAdditive(screenId, payload);
                     break;
 
                 default:
@@ -93,17 +93,17 @@ namespace Puzzle.Screens
             return Task.CompletedTask;
         }
 
-        private void ShowExclusive(ScreenId screenId)
+        private void ShowExclusive(ScreenId screenId, object payload)
         {
             // Exclusive replaces everything.
             DestroyActiveScreen();
             DestroyHiddenScreen();
             DestroyAdditiveScreens();
 
-            ShowScreen(screenId);
+            ShowScreen(screenId, payload);
         }
 
-        private void ShowModal(ScreenId screenId)
+        private void ShowModal(ScreenId screenId, object payload)
         {
             // Additive -> Modal is rejected.
             if (activeScreen == null && additiveScreens.Count > 0)
@@ -114,7 +114,7 @@ namespace Puzzle.Screens
             // None -> Modal.
             if (activeScreen == null)
             {
-                ShowScreen(screenId);
+                ShowScreen(screenId, payload);
 
                 return;
             }
@@ -135,10 +135,10 @@ namespace Puzzle.Screens
                 DestroyActiveScreen();
             }
 
-            ShowScreen(screenId);
+            ShowScreen(screenId, payload);
         }
 
-        private void ShowAdditive(ScreenId screenId)
+        private void ShowAdditive(ScreenId screenId, object payload)
         {
             // Exclusive -> Additive is rejected.
             if (activeScreen != null && activeScreen.ScreenType == ScreenType.Exclusive)
@@ -149,7 +149,7 @@ namespace Puzzle.Screens
             // None -> Additive.
             // Modal -> Additive.
             // Additive -> Additive.
-            ScreenBase screen = CreateScreen(screenId);
+            ScreenBase screen = CreateScreen(screenId, payload);
 
             additiveScreens.Add(screen);
         }
@@ -219,16 +219,20 @@ namespace Puzzle.Screens
             screenToHide.Hide();
         }
 
-        private void ShowScreen(ScreenId screenId)
+        private void ShowScreen(ScreenId screenId, object payload)
         {
-            activeScreen = CreateScreen(screenId);
+            activeScreen = CreateScreen(screenId, payload);
         }
 
-        private ScreenBase CreateScreen(ScreenId screenId)
+        private ScreenBase CreateScreen(ScreenId screenId, object payload)
         {
             ScreenBase prefab = screenRegistry.GetPrefab(screenId);
 
-            return UnityEngine.Object.Instantiate(prefab, screenRoot);
+            ScreenBase instance = UnityEngine.Object.Instantiate(prefab, screenRoot);
+
+            instance.Initialize(payload);
+
+            return instance;
         }
     }
 }

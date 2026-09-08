@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Puzzle.Screens
@@ -7,6 +8,10 @@ namespace Puzzle.Screens
         public abstract ScreenId ScreenId { get; }
 
         public abstract ScreenType ScreenType { get; }
+
+        public virtual void Initialize(object payload)
+        {
+        }
 
         public virtual void Hide()
         {

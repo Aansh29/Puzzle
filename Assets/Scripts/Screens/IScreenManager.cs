@@ -4,7 +4,7 @@ namespace Puzzle.Screens
 {
     public interface IScreenManager
     {
-        Task ShowAsync(ScreenId screenId);
+        Task ShowAsync(ScreenId screenId, object payload = null);
 
         Task HideAsync(ScreenId screenId);
 

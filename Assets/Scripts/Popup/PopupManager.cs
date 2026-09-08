@@ -82,15 +82,12 @@ namespace Puzzle.Popups
                 return;
             }
 
-            PopupRequest completedRequest = activeRequest;
             PopupBase popupToDestroy = activePopup;
 
             activeRequest = null;
             activePopup = null;
 
-            popupToDestroy.Hide();
-
-            CompleteRequest(completedRequest, result);
+            popupToDestroy.Hide(result);
 
             ShowNextPopup();
         }

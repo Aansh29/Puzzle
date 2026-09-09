@@ -1,9 +1,10 @@
 using NaughtyAttributes;
 using Puzzle.Core;
 using Puzzle.Flow;
-using Puzzle.Gameplay.Grid;
-using Puzzle.Gameplay.History;
 using Puzzle.Gameplay.Generation;
+using Puzzle.Gameplay.Grid;
+using Puzzle.Gameplay.Hints;
+using Puzzle.Gameplay.History;
 using Puzzle.Services;
 using System;
 using UnityEngine;
@@ -135,6 +136,22 @@ namespace Puzzle.Gameplay
                         remainingMoves,
                         moveLimit);
                 });
+        }
+        public void Hint()
+        {
+            if (levelCompleted || gridModel == null || remainingMoves <= 0)
+            {
+                return;
+            }
+
+            IHintService hintService = ServiceRegistry.Get<IHintService>();
+
+            if (!hintService.TryGetHint(gridModel, out GridPosition sourcePosition, out GridDirection direction))
+            {
+                return;
+            }
+
+            HandleDirectionDetected(sourcePosition, direction);
         }
 
         private void HandleDirectionDetected(GridPosition sourcePosition, GridDirection direction)

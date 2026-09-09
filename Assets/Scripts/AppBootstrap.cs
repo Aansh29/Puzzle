@@ -1,5 +1,6 @@
 using Puzzle.Core;
 using Puzzle.Flow;
+using Puzzle.Gameplay.Hints;
 using Puzzle.Popups;
 using Puzzle.Screens;
 using Puzzle.Services;
@@ -52,13 +53,15 @@ namespace Puzzle.Bootstrap
 
             ISaveService saveService = new PlayerPrefsSaveService();
 
+            IHintService hintService = new HintService();
+
             if (!saveService.HasKey("CurrentLevel"))
             {
                 saveService.SaveInt("CurrentLevel", 1);
             }
 
             ServiceRegistry.Register(saveService);
-
+            ServiceRegistry.Register(hintService);
             ServiceRegistry.Register(levelService);
             ServiceRegistry.Register(screenManager);
             ServiceRegistry.Register(popupManager);

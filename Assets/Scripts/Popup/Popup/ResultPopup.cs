@@ -1,3 +1,4 @@
+using Coffee.UIExtensions;
 using Puzzle.Core;
 using Puzzle.Flow;
 using Puzzle.Services;
@@ -18,6 +19,16 @@ namespace Puzzle.Popups
         [SerializeField]
         private GameObject restartButton;
 
+        [SerializeField]
+        private GameObject Container;
+
+        [SerializeField] private CanvasGroup ButtonParent;
+
+        [SerializeField]
+        private Transform MoveLocation;
+
+        [SerializeField] private UIParticle confettiVfx;
+
         public override PopupId PopupId => PopupId.Result;
 
         public override void Initialize(object payload, Action<PopupResult> onClosed)
@@ -34,6 +45,31 @@ namespace Puzzle.Popups
             resultText.text = result.Outcome == LevelOutcome.Win ? "YOU WIN" : "GAME OVER";
 
             SetupButtons(result.Outcome);
+            ShowResultAnimation(result.Outcome);
+        }
+
+        public void ShowResultAnimation(LevelOutcome outcome)
+        {
+            CanvasGroup group1 = resultText.GetComponent<CanvasGroup>();
+
+            group1.alpha = 0f;
+            ButtonParent.alpha = 0f;
+
+            LeanTween.move(Container, MoveLocation, 0.7f)
+                .setEaseOutCubic()
+                .setOnComplete(() =>
+                {
+                    LeanTween.alphaCanvas(group1, 1f, 0.3f);
+
+                    LeanTween.alphaCanvas(ButtonParent, 1f, 0.3f)
+                        .setOnComplete(() =>
+                        {
+                            if(outcome == LevelOutcome.Win)
+                            {
+                                confettiVfx.Play();
+                            }
+                        });
+                });
         }
 
         public void OnContinueClicked()

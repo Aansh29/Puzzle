@@ -22,7 +22,6 @@ Capsitech_BurstDebugInformation_DoNotShip/
 # Unity Build Outputs
 # ==============================
 
-*.apk
 *.aab
 *.ipa
 *.exe

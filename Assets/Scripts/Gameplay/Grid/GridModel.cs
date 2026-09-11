@@ -93,29 +93,7 @@ namespace Puzzle.Gameplay.Grid
 
             ReplaceEmptyPosition(move.PreviousPosition, move.TargetPosition);
         }
-        public bool CanMove(GridPosition sourcePosition, GridDirection direction, out GridPosition targetPosition)
-        {
-            targetPosition = default;
 
-            if (!IsValidPosition(sourcePosition))
-            {
-                return false;
-            }
-
-            if (cells[sourcePosition.Row, sourcePosition.Column] == EmptyCell)
-            {
-                return false;
-            }
-
-            targetPosition = GetTargetPositionFromSource(sourcePosition, direction);
-
-            if (!IsValidPosition(targetPosition))
-            {
-                return false;
-            }
-
-            return cells[targetPosition.Row, targetPosition.Column] == EmptyCell;
-        }
         public bool IsSolved()
         {
             int expectedValue = 1;

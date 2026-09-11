@@ -38,11 +38,17 @@ namespace Puzzle.Gameplay
         {
             gridModel = new GridModel(3, 3);
             boardHistory = new BoardHistory();
-            levelGenerator = new ShuffleLevelGenerator();
 
-            levelGenerator.Generate(
+            ShuffleLevelGenerator shuffleLevelGenerator = new ShuffleLevelGenerator();
+
+            levelGenerator = shuffleLevelGenerator;
+
+            shuffleLevelGenerator.Generate(
                 gridModel,
                 5);
+
+            ServiceRegistry.Get<IHintService>().SetSolution(
+                shuffleLevelGenerator.ShuffleMoves);
 
             remainingMoves = 5;
             moveLimit = 5;
@@ -96,11 +102,13 @@ namespace Puzzle.Gameplay
 
             boardHistory = new BoardHistory();
 
-            levelGenerator = new ShuffleLevelGenerator();
+            ShuffleLevelGenerator shuffleLevelGenerator = new ShuffleLevelGenerator();
 
-            levelGenerator.Generate(
-                gridModel,
-                levelData.MoveLimit);
+            levelGenerator = shuffleLevelGenerator;
+
+            shuffleLevelGenerator.Generate(gridModel, levelData.MoveLimit);
+
+            ServiceRegistry.Get<IHintService>().SetSolution(shuffleLevelGenerator.ShuffleMoves);
 
             gridView.Build(gridModel);
 
@@ -121,6 +129,8 @@ namespace Puzzle.Gameplay
 
             BoardMove move = boardHistory.Undo();
 
+            ServiceRegistry.Get<IHintService>().RegisterUndo();
+
             gridModel.UndoMove(move);
 
             remainingMoves++;
@@ -140,18 +150,12 @@ namespace Puzzle.Gameplay
         public void Hint()
         {
             if (levelCompleted || gridModel == null || remainingMoves <= 0)
-            {
                 return;
-            }
 
             IHintService hintService = ServiceRegistry.Get<IHintService>();
 
-            if (!hintService.TryGetHint(gridModel, out GridPosition sourcePosition, out GridDirection direction))
-            {
-                return;
-            }
-
-            HandleDirectionDetected(sourcePosition, direction);
+            if (hintService.TryGetHint(gridModel, remainingMoves, out GridPosition sourcePosition, out GridDirection direction))
+                HandleDirectionDetected(sourcePosition, direction);
         }
 
         private void HandleDirectionDetected(GridPosition sourcePosition, GridDirection direction)
@@ -179,6 +183,8 @@ namespace Puzzle.Gameplay
             BoardMove move = new BoardMove(movedValue, previousPosition, targetPosition);
 
             boardHistory.Save(move);
+
+            ServiceRegistry.Get<IHintService>().RegisterMove(move);
 
             remainingMoves--;
 

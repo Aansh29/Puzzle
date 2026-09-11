@@ -7,6 +7,7 @@ using Puzzle.Services;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Puzzle.Bootstrap
 {
@@ -14,16 +15,17 @@ namespace Puzzle.Bootstrap
     {
         [Header("Registries")]
         [SerializeField] private ScreenRegistry screenRegistry;
-
         [SerializeField] private PopupRegistry popupRegistry;
 
         [Header("Roots")]
         [SerializeField] private Transform screenRoot;
-
         [SerializeField] private Transform popupRoot;
 
         [Header("Levels")]
         [SerializeField] private LevelData[] levels;
+
+        [Header("Loading")]
+        [SerializeField] private GameObject loadingScreen;
 
         private GameFlowController flowController;
 
@@ -34,6 +36,8 @@ namespace Puzzle.Bootstrap
                 InitializeServices();
 
                 await InitializeGameFlow();
+
+                HideLoadingScreen();
             }
             catch (Exception exception)
             {
@@ -46,13 +50,9 @@ namespace Puzzle.Bootstrap
             ServiceRegistry.Clear();
 
             ILevelService levelService = new LevelService(levels);
-
             IScreenManager screenManager = new ScreenManager(screenRegistry, screenRoot);
-
             IPopupManager popupManager = new PopupManager(popupRegistry, popupRoot);
-
             ISaveService saveService = new PlayerPrefsSaveService();
-
             IHintService hintService = new HintService();
 
             if (!saveService.HasKey("CurrentLevel"))
@@ -70,13 +70,10 @@ namespace Puzzle.Bootstrap
         private async Task InitializeGameFlow()
         {
             IScreenManager screenManager = ServiceRegistry.Get<IScreenManager>();
-
             IPopupManager popupManager = ServiceRegistry.Get<IPopupManager>();
 
             MainMenuState mainMenuState = new MainMenuState(screenManager);
-
             GameplayState gameplayState = new GameplayState(screenManager);
-
             ResultsState resultsState = new ResultsState(popupManager);
 
             flowController = new GameFlowController(mainMenuState, gameplayState, resultsState);
@@ -84,6 +81,14 @@ namespace Puzzle.Bootstrap
             ServiceRegistry.Register<IGameFlowController>(flowController);
 
             await flowController.InitializeAsync();
+        }
+
+        private void HideLoadingScreen()
+        {
+            if (loadingScreen != null)
+            {
+                loadingScreen.SetActive(false);
+            }
         }
 
         private void OnDestroy()

@@ -1,4 +1,7 @@
-# Unity generated folders
+# ==============================
+# Unity Generated Folders
+# ==============================
+
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -6,11 +9,42 @@
 [Bb]uilds/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
+.utmp/
 
-# IDE / Visual Studio
+# ==============================
+# Unity Backup / Generated
+# ==============================
+
+test_BackUpThisFolder_ButDontShipItWithYourGame/
+Capsitech_BurstDebugInformation_DoNotShip/
+
+# ==============================
+# Unity Build Outputs
+# ==============================
+
+*.apk
+*.aab
+*.ipa
+*.exe
+*.app
+
+# ==============================
+# Unity Generated Files
+# ==============================
+
+sysinfo.txt
+*.pdb
+*.mdb
+*.dmp
+
+# ==============================
+# Visual Studio / Rider / VS Code
+# ==============================
+
 .vs/
 .idea/
 .vscode/
+
 *.csproj
 *.sln
 *.suo
@@ -19,29 +53,28 @@
 *.pidb
 *.booproj
 
-# Unity generated files
-sysinfo.txt
-*.pidb.meta
-*.pdb
-*.mdb
+# ==============================
+# Gradle / Android Generated
+# ==============================
 
-# OS files
+.gradle/
+*/build/
+*/captures/
+
+# ==============================
+# OS Files
+# ==============================
+
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Crash reports
-sysinfo.txt
+# ==============================
+# Temporary / Backup Files
+# ==============================
 
-# Build output
-/[Bb]uild/
-/[Bb]uilds/
-
-# Memory captures
-*.pdb
-*.dmp
-
-# Rider
-.idea/
-
-# Visual Studio Code
-.vscode/
+*.tmp
+*.temp
+*.bak
+*.swp
+*~

@@ -1,5 +1,7 @@
 using Puzzle.Gameplay.Grid;
+using Puzzle.Gameplay.History;
 using System;
+using System.Collections.Generic;
 
 namespace Puzzle.Gameplay.Generation
 {
@@ -7,9 +9,14 @@ namespace Puzzle.Gameplay.Generation
     {
         private readonly Random random;
 
+        private readonly List<BoardMove> shuffleMoves;
+
+        public IReadOnlyList<BoardMove> ShuffleMoves => shuffleMoves;
+
         public ShuffleLevelGenerator()
         {
             random = new Random();
+            shuffleMoves = new List<BoardMove>();
         }
 
         public void Generate(GridModel gridModel, int moveCount)
@@ -24,6 +31,8 @@ namespace Puzzle.Gameplay.Generation
                 throw new ArgumentOutOfRangeException(nameof(moveCount));
             }
 
+            shuffleMoves.Clear();
+
             GridDirection? previousDirection = null;
 
             for (int i = 0; i < moveCount; i++)
@@ -34,19 +43,15 @@ namespace Puzzle.Gameplay.Generation
                 {
                     direction = GetRandomDirection();
                 }
-                while (previousDirection.HasValue &&
-                       direction == GetOppositeDirection(previousDirection.Value));
+                while (previousDirection.HasValue && direction == GetOppositeDirection(previousDirection.Value));
 
-                if (!gridModel.TryMove(
-                        direction,
-                        out _,
-                        out _,
-                        out _))
+                if (!gridModel.TryMove(direction, out int movedValue, out GridPosition targetPosition, out GridPosition previousPosition))
                 {
                     i--;
-
                     continue;
                 }
+
+                shuffleMoves.Add(new BoardMove(movedValue, previousPosition, targetPosition));
 
                 previousDirection = direction;
             }
